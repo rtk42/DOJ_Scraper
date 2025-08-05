@@ -3,6 +3,8 @@ from scrapPage import extract_doj_markdown, extract_doj_markdown_from_url
 from LLM.pagination import process_doj_pagination
 from LLM.extractLinks import extract_article_links_with_openai
 from LLM.extractArticleText import extract_press_release_body
+from utils import get_date_range_from_args
+
 
 import logging
 import os
@@ -21,8 +23,8 @@ if not OPENAI_API_KEY:
 
 
 
-DATE_FROM = "2025-07-31"
-DATE_TO = "2025-08-01"
+# Get start and end dates
+DATE_FROM, DATE_TO = get_date_range_from_args()
 
 BASE_URL = (
     f"https://www.justice.gov/psc/press-room?search_api_fulltext=&start_date={DATE_FROM}&end_date={DATE_TO}&sort_by=field_date"
