@@ -1,0 +1,26 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Log and temp files
+*.log
+*.tmp
+
+# System files
+.DS_Store
+
+# IDE/editor config
+.vscode/
+.idea/
+
+# Data or output folders
+data/
+local/
