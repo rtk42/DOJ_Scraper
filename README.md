@@ -1,29 +1,31 @@
-
 # 🏛️ DOJ_Scraper
 
-**DOJ_Scraper** is a Python-based scraper designed to collect press releases (or similar documents) from the U.S. Department of Justice website. It automates:
+**DOJ_Scraper** is a Python-based scraper for collecting press releases from the U.S. Department of Justice website.  
+It automates:
 
-- Fetching listings of DOJ materials
-- Parsing dates, titles, links, and metadata
-- Saving structured output (e.g. JSON or CSV)
-
----
-
-## ⚠️ Pagination Requirement
-
-The scraper **requires pagination** on the search results page to work properly. If your date filter returns **only a single page**, the script won't proceed.  
-**Tip:** Use a date range with enough volume (e.g. several weeks or months) so that results span **multiple pages**. This ensures full crawling. This limitation will be fixed in a future update.
+- Fetching DOJ press release listings for a given date range  
+- Detecting pagination (if present)  
+- Extracting article links directly from the first page when no pagination exists  
+- Fetching full article content via an LLM  
+- Saving structured output in JSON format
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Key Features
 
-### Requirements
+- **Pagination-aware** — Scrapes across all result pages when pagination exists  
+- **Single-page safe** — If no pagination is found, extracts links directly from the initial listing page  
+- **LLM-powered parsing** — Uses an OpenAI model to identify article links and extract clean article bodies from DOJ markdown pages  
+- **Error-tolerant** — Logs failures per URL so no links vanish silently  
+- **Structured output** — Stores results in a single JSON file for easy consumption
 
-- Python 3.9 or higher  
-- Recommended modules in `requirements.txt`
+---
 
-Install dependencies:
+## 📦 Requirements
+
+- Python **3.9+**  
+- `OPENAI_API_KEY` set in your `.env` file  
+- Install dependencies:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -32,53 +34,76 @@ pip install -r requirements.txt
 
 ---
 
-## ⚙️ Running the Scraper
+## ⚙️ Usage
 
-Assuming you have a main script named `main.py` or `scrapPage.py`, follow these steps:
+From the project root:
 
 ```bash
-cd DOJ_Scraper   # ensure you're in project root
 source .venv/bin/activate
 
-# Run the scraper with a date filter
+# Run with explicit date range
 python main.py --start-date YYYY-MM-DD --end-date YYYY-MM-DD
 ```
 
 Example:
 ```bash
-python main.py --start-date 2025-01-01 --end-date 2025-06-30
+python main.py --start-date 2025-08-05 --end-date 2025-08-06
 ```
 
-If fewer results appear and **pagination isn't triggered**, adjust the date range broader until multiple pages are encountered.
+The scraper will:
+
+1. Fetch the DOJ press room listing for the given range  
+2. Detect whether pagination exists  
+3. If paginated — scrape all pages; if not — extract directly from the first page  
+4. Visit each article and extract the press release text  
+5. Save results to `extracted_article_text.json`
+
+---
+
+## 📊 Control Flow Diagram
+
+```mermaid
+flowchart TD
+    A[Start] --> B[Fetch DOJ listing page for date range]
+    B --> C[Process pagination with LLM]
+    C -->|No pagination found| D[Extract article links from first page via LLM]
+    C -->|Pagination found| E[Iterate over all pages]
+    E --> F[Extract article links from each page via LLM]
+    D --> G[Deduplicate all article URLs]
+    F --> G[Deduplicate all article URLs]
+    G --> H[Fetch each article page markdown]
+    H --> I[Extract press release body via LLM]
+    I --> J[Save all results to extracted_article_text.json]
+    J --> K[End]
+```
 
 ---
 
 ## 🗂️ Output
 
-- Scraped results are saved into:
-  - `data/` folder (if used; outputs might include `.csv`, `.json`, or logs)
-- Filenames denote the date range or batch number.
+- **File:** `extracted_article_text.json`  
+- **Format:** `{ "article_url": "extracted text", ... }`  
+- Failed extractions are stored with descriptive placeholders (`"Markdown fetch failed"`, `"Extraction failed"`, etc.)
 
 ---
 
-## ✅ Tips & Caveats
+## ✅ Tips
 
-- **Always choose date ranges that result in multiple pages**, especially during busy periods.
-- **Remove or rotate your `.env` or credentials**, particularly when publishing your repo.
-- This is built as a straightforward scraper—remember to respect terms of service and rate-limit requests.
+- Narrow date ranges may result in only a single page — the scraper now handles this automatically.  
+- Wider date ranges will likely yield pagination, in which case all pages are scraped.  
+- Respect DOJ’s terms of service and avoid overly aggressive scraping (a polite concurrency limit is built in).
 
 ---
 
 ## 🔧 Planned Enhancements
 
-- Automatic pagination detection to avoid missing data  
-- Better handling of date filters (e.g. iterative splitting if only one page)  
-- Support for more output formats (database, Excel, etc.)
+- Deterministic (non-LLM) link extraction to reduce API usage  
+- Optional CSV/JSONL/SQLite outputs  
+- Automatic retries with exponential backoff for failed pages
 
 ---
 
 ## 📄 License & Contributing
 
-_This project is currently not licensed. Add a `LICENSE` file if needed._
-
-Contributions are welcome! If you’d like to suggest features (like fixing pagination handling), feel free to open an issue or pull request.
+This project currently has **no license**.  
+Feel free to fork, modify, or suggest features via pull requests or issues.
